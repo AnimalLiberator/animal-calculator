@@ -1,0 +1,147 @@
+<div style="max-width:1100px;margin:40px auto;font-family:Arial,sans-serif;color:#222;">
+  <div style="max-width:520px;margin:0 auto 28px auto;border:1px solid #e5e5e5;border-radius:16px;padding:24px;background:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+    <h2 style="margin:0 0 10px 0;font-size:28px;line-height:1.4;text-align:center;">助けられる動物計算機</h2>
+    <p style="font-size:14px;line-height:1.8;color:#555;text-align:center;margin:0 0 18px 0;">
+      年齢を入力すると、いまヴィーガンになった場合に、これからの人生で消費せずにすむ動物の数を概算で表示します。
+    </p>
+
+    <label for="age-all" style="display:block;font-weight:bold;">年齢</label>
+    <input
+      type="number"
+      id="age-all"
+      min="0"
+      max="120"
+      placeholder="例：30"
+      style="width:100%;padding:12px;margin-top:8px;border:1px solid #ccc;border-radius:10px;font-size:16px;box-sizing:border-box;"
+    >
+
+    <button
+      onclick="calcAllAnimals()"
+      style="width:100%;margin-top:16px;padding:12px 16px;background:#4f7c63;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;"
+    >
+      計算する
+    </button>
+
+    <div style="margin-top:16px;font-size:12px;line-height:1.8;color:#666;">
+      ※ 本計算機では、厚生労働省の令和6年簡易生命表の男女別平均寿命（男81.09年、女87.13年）を単純平均した
+      <strong>84.11年</strong>を便宜的な寿命として用いています。<br>
+      ※ 採卵鶏は、採卵鶏（雌）1羽につき雄のひなが同程度生じる前提で <strong>×2</strong> としています。<br>
+      ※ 魚は種類や大きさによる個体差が大きいため、重量で算出し、参考としてサンマ換算も表示しています。
+    </div>
+  </div>
+
+  <div id="all-results" style="display:none;">
+    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;align-items:start;">
+      
+      <!-- 助けられる動物 -->
+      <div style="border:1px solid #e5e5e5;border-radius:16px;padding:24px;background:#fafaf8;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+        <h3 style="margin-top:0;font-size:24px;line-height:1.4;">助けられる動物の数</h3>
+        <div id="main-result"></div>
+      </div>
+
+      <!-- 魚 -->
+      <div style="border:1px solid #e5e5e5;border-radius:16px;padding:24px;background:#f8fafb;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
+        <h3 style="margin-top:0;font-size:24px;line-height:1.4;">魚の計算</h3>
+        <div id="fish-result"></div>
+
+        <div style="margin-top:20px;font-size:12px;line-height:1.8;color:#666;">
+          ※ 年間食用魚介類消費量は <strong>23.9kg</strong> としています。<br>
+          ※ サンマ換算は、可食部を <strong>1匹あたり約100g</strong> とする参考値です（個体差あり）。
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<script>
+  const LIFE_EXPECTANCY = 84.11;
+
+  function safeYearsLeft(age) {
+    const years = LIFE_EXPECTANCY - age;
+    return years > 0 ? years : 0;
+  }
+
+  function formatNumber(value, digits = 1) {
+    return Number(value).toLocaleString("ja-JP", {
+      minimumFractionDigits: digits,
+      maximumFractionDigits: digits
+    });
+  }
+
+  function calcAllAnimals() {
+    const age = parseFloat(document.getElementById("age-all").value);
+    const allResults = document.getElementById("all-results");
+    const mainResult = document.getElementById("main-result");
+    const fishResult = document.getElementById("fish-result");
+
+    if (isNaN(age) || age < 0 || age > 120) {
+      allResults.style.display = "block";
+      mainResult.innerHTML = '<p style="color:#b00020;">0〜120の年齢を入力してください。</p>';
+      fishResult.innerHTML = '';
+      return;
+    }
+
+    const yearsLeft = safeYearsLeft(age);
+
+    // 牛・豚・鶏・採卵鶏
+    const cow = (2.438 / 228) * yearsLeft;
+    const pig = (7.781 / 47) * yearsLeft;
+    const broiler = (6.359 / 1.325) * yearsLeft;
+    const layerHen = (320 / 300) * 2 * yearsLeft;
+
+    // 魚
+    const fishKg = 23.9 * yearsLeft;
+    const sauryCount = fishKg / 0.1;
+
+    mainResult.innerHTML = `
+      <p style="margin:0 0 12px 0;font-size:14px;color:#666;">これから先の概算</p>
+
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
+        <div style="padding:14px;border-radius:10px;background:#f6f3ee;">
+          <div style="font-size:13px;color:#666;">牛</div>
+          <div style="font-size:28px;font-weight:bold;margin-top:6px;">${formatNumber(cow, 2)} <span style="font-size:16px;">頭</span></div>
+        </div>
+
+        <div style="padding:14px;border-radius:10px;background:#f6f3ee;">
+          <div style="font-size:13px;color:#666;">豚</div>
+          <div style="font-size:28px;font-weight:bold;margin-top:6px;">${formatNumber(pig, 2)} <span style="font-size:16px;">頭</span></div>
+        </div>
+
+        <div style="padding:14px;border-radius:10px;background:#f6f3ee;">
+          <div style="font-size:13px;color:#666;">肉用鶏</div>
+          <div style="font-size:28px;font-weight:bold;margin-top:6px;">${formatNumber(broiler, 1)} <span style="font-size:16px;">羽</span></div>
+        </div>
+
+        <div style="padding:14px;border-radius:10px;background:#f6f3ee;">
+          <div style="font-size:13px;color:#666;">採卵鶏</div>
+          <div style="font-size:28px;font-weight:bold;margin-top:6px;">${formatNumber(layerHen, 1)} <span style="font-size:16px;">羽</span></div>
+        </div>
+      </div>
+
+      <p style="margin:14px 0 0 0;font-size:12px;color:#666;line-height:1.8;">
+        残り年数：${formatNumber(yearsLeft, 2)} 年
+      </p>
+    `;
+
+    fishResult.innerHTML = `
+      <p style="margin:0 0 12px 0;font-size:14px;color:#666;">これから先の概算</p>
+
+      <div style="padding:14px;border-radius:10px;background:#eef6fa;margin-bottom:12px;">
+        <div style="font-size:13px;color:#666;">食用魚介類の消費量</div>
+        <div style="font-size:30px;font-weight:bold;margin-top:6px;">${formatNumber(fishKg, 1)} <span style="font-size:16px;">kg</span></div>
+      </div>
+
+      <div style="padding:14px;border-radius:10px;background:#eef6fa;">
+        <div style="font-size:13px;color:#666;">サンマ換算</div>
+        <div style="font-size:34px;font-weight:bold;margin-top:6px;">約 ${Math.round(sauryCount).toLocaleString("ja-JP")} <span style="font-size:18px;">匹</span></div>
+      </div>
+
+      <p style="margin:14px 0 0 0;font-size:12px;color:#666;line-height:1.8;">
+        残り年数：${formatNumber(yearsLeft, 2)} 年
+      </p>
+    `;
+
+    allResults.style.display = "block";
+  }
+</script>
