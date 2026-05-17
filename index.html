@@ -1,56 +1,386 @@
-<div style="max-width:1100px;margin:40px auto;font-family:Arial,sans-serif;color:#222;">
-  <div style="max-width:520px;margin:0 auto 28px auto;border:1px solid #e5e5e5;border-radius:16px;padding:24px;background:#ffffff;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-    <h2 style="margin:0 0 10px 0;font-size:28px;line-height:1.4;text-align:center;">助けられる動物計算機</h2>
-    <p style="font-size:14px;line-height:1.8;color:#555;text-align:center;margin:0 0 18px 0;">
-      年齢を入力すると、いまヴィーガンになった場合に、これからの人生で消費せずにすむ動物の数を概算で表示します。
+<style>
+  .ac-root {
+    max-width: 1100px;
+    margin: 40px auto;
+    font-family: 'Noto Sans JP', 'Noto Sans', Arial, sans-serif;
+    color: #222;
+    padding: 0 16px;
+    box-sizing: border-box;
+  }
+
+  /* ── 入力カード ── */
+  .ac-input-card {
+    max-width: 520px;
+    margin: 0 auto 32px auto;
+    border: 1px solid #e5e5e5;
+    border-radius: 20px;
+    padding: 28px 28px 20px;
+    background: #fff;
+    box-shadow: 0 2px 12px rgba(0,0,0,0.06);
+  }
+
+  .ac-input-card h2 {
+    margin: 0 0 12px 0;
+    font-size: 32px;
+    font-weight: 900;
+    line-height: 1.3;
+    text-align: center;
+    letter-spacing: -0.01em;
+    background: linear-gradient(135deg, #00AEEF 0%, #0096cc 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+  }
+
+  .ac-subtitle {
+    font-size: 14px;
+    line-height: 1.9;
+    color: #666;
+    text-align: center;
+    margin: 0 0 22px 0;
+  }
+
+  .ac-label {
+    display: block;
+    font-weight: 700;
+    font-size: 14px;
+    margin-bottom: 8px;
+    color: #333;
+  }
+
+  .ac-input {
+    width: 100%;
+    padding: 13px 14px;
+    border: 1.5px solid #ccc;
+    border-radius: 12px;
+    font-size: 16px;
+    box-sizing: border-box;
+    transition: border-color 0.2s, box-shadow 0.2s;
+    outline: none;
+    -moz-appearance: textfield;
+  }
+
+  .ac-input:focus {
+    border-color: #00AEEF;
+    box-shadow: 0 0 0 3px rgba(0,174,239,0.15);
+  }
+
+  .ac-input::-webkit-outer-spin-button,
+  .ac-input::-webkit-inner-spin-button { -webkit-appearance: none; }
+
+  .ac-btn {
+    width: 100%;
+    margin-top: 16px;
+    padding: 13px 16px;
+    background: #00AEEF;
+    color: #fff;
+    border: none;
+    border-radius: 12px;
+    font-size: 16px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: background 0.2s, transform 0.1s;
+    letter-spacing: 0.04em;
+  }
+
+  .ac-btn:hover { background: #0096cc; }
+  .ac-btn:active { transform: scale(0.98); }
+
+  .ac-notes {
+    font-size: 12px;
+    line-height: 1.9;
+    color: #888;
+  }
+
+  .ac-error {
+    margin-top: 14px;
+    padding: 10px 14px;
+    background: #fff0f0;
+    border: 1px solid #f5c6c6;
+    border-radius: 10px;
+    color: #b00020;
+    font-size: 14px;
+    display: none;
+  }
+
+  /* ── 結果エリア ── */
+  #all-results {
+    display: none;
+    animation: fadeIn 0.4s ease;
+  }
+
+  @keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to   { opacity: 1; transform: translateY(0); }
+  }
+
+  /* ── サマリーバナー ── */
+  .ac-summary {
+    max-width: 520px;
+    margin: 0 auto 28px auto;
+    padding: 22px 24px;
+    background: linear-gradient(135deg, #00AEEF 0%, #0096cc 100%);
+    border-radius: 20px;
+    color: #fff;
+    text-align: center;
+    box-shadow: 0 4px 16px rgba(0,174,239,0.3);
+  }
+
+  .ac-summary-label {
+    font-size: 13px;
+    opacity: 0.85;
+    margin-bottom: 6px;
+    letter-spacing: 0.04em;
+  }
+
+  .ac-summary-years {
+    font-size: 15px;
+    opacity: 0.8;
+    margin-top: 6px;
+  }
+
+  .ac-summary-total {
+    font-size: 42px;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .ac-summary-unit {
+    font-size: 18px;
+    font-weight: 400;
+    margin-left: 4px;
+  }
+
+  /* ── カードグリッド ── */
+  .ac-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+    gap: 24px;
+    align-items: start;
+  }
+
+  .ac-card {
+    border: 1px solid #e5e5e5;
+    border-radius: 20px;
+    padding: 24px;
+    background: #fafaf8;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+
+  .ac-card--fish {
+    background: #f8fafb;
+  }
+
+  .ac-card h3 {
+    margin: 0 0 6px 0;
+    font-size: 18px;
+    color: #333;
+  }
+
+  .ac-card-sublabel {
+    font-size: 13px;
+    color: #888;
+    margin: 0 0 16px 0;
+  }
+
+  /* ── 動物グリッド ── */
+  .ac-animal-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+  }
+
+  .ac-animal-tile {
+    padding: 14px;
+    border-radius: 14px;
+    background: #f0ede7;
+    transition: background 0.2s;
+  }
+
+  .ac-animal-tile:hover { background: #e8e4dd; }
+
+  .ac-animal-emoji {
+    font-size: 22px;
+    line-height: 1;
+    margin-bottom: 4px;
+  }
+
+  .ac-animal-name {
+    font-size: 12px;
+    color: #777;
+    margin-bottom: 2px;
+  }
+
+  .ac-animal-count {
+    font-size: 26px;
+    font-weight: 700;
+    color: #1a1a1a;
+    line-height: 1.2;
+  }
+
+  .ac-animal-unit {
+    font-size: 14px;
+    font-weight: 400;
+    color: #555;
+    margin-left: 2px;
+  }
+
+  /* ── 魚タイル ── */
+  .ac-fish-tile {
+    padding: 16px;
+    border-radius: 14px;
+    background: #e8f4f9;
+    margin-bottom: 12px;
+    transition: background 0.2s;
+  }
+
+  .ac-fish-tile:hover { background: #daeef7; }
+
+  .ac-fish-tile:last-of-type { margin-bottom: 0; }
+
+  .ac-fish-name {
+    font-size: 12px;
+    color: #5a8a9a;
+    margin-bottom: 4px;
+    display: flex;
+    align-items: center;
+    gap: 5px;
+  }
+
+  .ac-fish-count {
+    font-size: 30px;
+    font-weight: 700;
+    color: #1a4a5a;
+    line-height: 1.2;
+  }
+
+  .ac-fish-unit {
+    font-size: 15px;
+    font-weight: 400;
+    margin-left: 3px;
+    color: #2a6a7a;
+  }
+
+  .ac-card-notes {
+    margin-top: 18px;
+    font-size: 11.5px;
+    line-height: 1.9;
+    color: #999;
+    border-top: 1px solid #eee;
+    padding-top: 12px;
+  }
+
+  /* ── 次のステップ ── */
+  .ac-cta {
+    max-width: 520px;
+    margin: 28px auto 0;
+    padding: 20px 24px;
+    background: #f0f9ff;
+    border: 1px solid #b3e2f7;
+    border-radius: 16px;
+    text-align: center;
+  }
+
+  .ac-cta p {
+    margin: 0 0 12px 0;
+    font-size: 14px;
+    color: #555;
+    line-height: 1.8;
+  }
+
+  .ac-cta-link {
+    display: inline-block;
+    padding: 10px 24px;
+    background: #00AEEF;
+    color: #fff;
+    border-radius: 10px;
+    text-decoration: none;
+    font-size: 14px;
+    font-weight: 700;
+    transition: background 0.2s;
+  }
+
+  .ac-cta-link:hover { background: #0096cc; }
+
+  .ac-all-notes {
+    max-width: 520px;
+    margin: 16px auto 0;
+    font-size: 12px;
+    line-height: 1.9;
+    color: #aaa;
+  }
+</style>
+
+<div class="ac-root">
+
+  <!-- 入力カード -->
+  <div class="ac-input-card">
+    <h2>助けられる動物計算機</h2>
+    <p class="ac-subtitle">
+      年齢を入力すると、いまヴィーガンになった場合に、<br>
+      これからの人生で<strong>消費せずにすむ動物の数</strong>を概算で表示します。
     </p>
 
-    <label for="age-all" style="display:block;font-weight:bold;">年齢</label>
+    <label class="ac-label" for="age-all">あなたの年齢</label>
     <input
       type="number"
       id="age-all"
+      class="ac-input"
       min="0"
       max="120"
       placeholder="例：30"
-      style="width:100%;padding:12px;margin-top:8px;border:1px solid #ccc;border-radius:10px;font-size:16px;box-sizing:border-box;"
+      inputmode="numeric"
+      autofocus
     >
 
-    <button
-      onclick="calcAllAnimals()"
-      style="width:100%;margin-top:16px;padding:12px 16px;background:#4f7c63;color:#fff;border:none;border-radius:10px;font-size:16px;cursor:pointer;"
-    >
-      計算する
-    </button>
+    <div id="ac-error" class="ac-error">0〜120の範囲で年齢を入力してください。</div>
 
-    <div style="margin-top:16px;font-size:12px;line-height:1.8;color:#666;">
-      ※ 本計算機では、厚生労働省の令和6年簡易生命表の男女別平均寿命（男81.09年、女87.13年）を単純平均した
-      <strong>84.11年</strong>を便宜的な寿命として用いています。<br>
-      ※ 採卵鶏は、採卵鶏（雌）1羽につき雄のひなが同程度生じる前提で <strong>×2</strong> としています。<br>
-      ※ 魚は種類や大きさによる個体差が大きいため、重量で算出し、参考としてサンマ換算も表示しています。
-    </div>
+    <button class="ac-btn" onclick="calcAllAnimals()">計算する</button>
   </div>
 
-  <div id="all-results" style="display:none;">
-    <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(320px,1fr));gap:24px;align-items:start;">
-      
+  <!-- 結果エリア -->
+  <div id="all-results">
+
+    <!-- サマリーバナー -->
+    <div class="ac-summary">
+      <div class="ac-summary-label">あなたが助けられる動物（牛・豚・鶏）の合計</div>
+      <div class="ac-summary-total" id="summary-total">—<span class="ac-summary-unit">頭・羽</span></div>
+      <div class="ac-summary-years" id="summary-years"></div>
+    </div>
+
+    <div class="ac-grid">
+
       <!-- 助けられる動物 -->
-      <div style="border:1px solid #e5e5e5;border-radius:16px;padding:24px;background:#fafaf8;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-        <h3 style="margin-top:0;font-size:24px;line-height:1.4;">助けられる動物の数</h3>
+      <div class="ac-card">
+        <h3>🐾 助けられる動物の数</h3>
+        <p class="ac-card-sublabel">いまヴィーガンになった場合の生涯概算</p>
         <div id="main-result"></div>
       </div>
 
       <!-- 魚 -->
-      <div style="border:1px solid #e5e5e5;border-radius:16px;padding:24px;background:#f8fafb;box-shadow:0 2px 8px rgba(0,0,0,0.04);">
-        <h3 style="margin-top:0;font-size:24px;line-height:1.4;">魚の計算</h3>
+      <div class="ac-card ac-card--fish">
+        <h3>🐟 魚の計算</h3>
+        <p class="ac-card-sublabel">魚介類の消費量（重量・サンマ換算）</p>
         <div id="fish-result"></div>
-
-        <div style="margin-top:20px;font-size:12px;line-height:1.8;color:#666;">
-          ※ 年間食用魚介類消費量は <strong>23.9kg</strong> としています。<br>
-          ※ サンマ換算は、可食部を <strong>1匹あたり約100g</strong> とする参考値です（個体差あり）。
-        </div>
       </div>
 
     </div>
+
+    <!-- 次のステップ -->
+    <div class="ac-cta">
+      <p>ヴィーガンへの移行に興味をもったら、<br>具体的なヒントをまとめたページもご覧ください。</p>
+      <a class="ac-cta-link" href="https://www.animal-liberator.net/vegan-tips" target="_blank" rel="noopener">ヴィーガンのコツを見る →</a>
+    </div>
+
+    <!-- まとめ注釈 -->
+    <div class="ac-all-notes">
+      ※ 厚生労働省の令和6年簡易生命表の平均寿命（男81.09年・女87.13年）を単純平均した <strong>84.11年</strong> を寿命として用いています。<br>
+      ※ 採卵鶏は、雌1羽につき雄のひなが同程度生じるとして <strong>×2</strong> に換算しています。<br>
+      ※ 魚は個体差が大きいため重量で算出し、サンマ換算を参考値として表示しています。<br>
+      ※ 年間食用魚介類消費量は <strong>23.9kg</strong> としています。<br>
+      ※ サンマ換算は可食部 <strong>1匹あたり約100g</strong> の参考値です（個体差あり）。
+    </div>
+
   </div>
 </div>
 
@@ -62,86 +392,89 @@
     return years > 0 ? years : 0;
   }
 
-  function formatNumber(value, digits = 1) {
-    return Number(value).toLocaleString("ja-JP", {
+  function fmt(value, digits = 1) {
+    return Number(value).toLocaleString('ja-JP', {
       minimumFractionDigits: digits,
       maximumFractionDigits: digits
     });
   }
 
   function calcAllAnimals() {
-    const age = parseFloat(document.getElementById("age-all").value);
-    const allResults = document.getElementById("all-results");
-    const mainResult = document.getElementById("main-result");
-    const fishResult = document.getElementById("fish-result");
+    const input    = document.getElementById('age-all');
+    const errorEl  = document.getElementById('ac-error');
+    const allResults = document.getElementById('all-results');
+    const age      = parseFloat(input.value);
 
     if (isNaN(age) || age < 0 || age > 120) {
-      allResults.style.display = "block";
-      mainResult.innerHTML = '<p style="color:#b00020;">0〜120の年齢を入力してください。</p>';
-      fishResult.innerHTML = '';
+      errorEl.style.display = 'block';
+      allResults.style.display = 'none';
+      input.focus();
       return;
     }
 
+    errorEl.style.display = 'none';
+
     const yearsLeft = safeYearsLeft(age);
 
-    // 牛・豚・鶏・採卵鶏
-    const cow = (2.438 / 228) * yearsLeft;
-    const pig = (7.781 / 47) * yearsLeft;
-    const broiler = (6.359 / 1.325) * yearsLeft;
-    const layerHen = (320 / 300) * 2 * yearsLeft;
-
-    // 魚
-    const fishKg = 23.9 * yearsLeft;
+    const cow       = (2.438 / 228)   * yearsLeft;
+    const pig       = (7.781 / 47)    * yearsLeft;
+    const broiler   = (6.359 / 1.325) * yearsLeft;
+    const layerHen  = (320 / 300) * 2 * yearsLeft;
+    const fishKg    = 23.9 * yearsLeft;
     const sauryCount = fishKg / 0.1;
 
-    mainResult.innerHTML = `
-      <p style="margin:0 0 12px 0;font-size:14px;color:#666;">これから先の概算</p>
+    const totalAnimals = cow + pig + broiler + layerHen;
 
-      <div style="display:grid;grid-template-columns:1fr 1fr;gap:12px;">
-        <div style="padding:14px;border-radius:10px;background:#f6f3ee;">
-          <div style="font-size:13px;color:#666;">牛</div>
-          <div style="font-size:28px;font-weight:bold;margin-top:6px;">${formatNumber(cow, 2)} <span style="font-size:16px;">頭</span></div>
+    document.getElementById('summary-total').innerHTML =
+      `${fmt(totalAnimals, 0)}<span class="ac-summary-unit">頭・羽</span>`;
+    document.getElementById('summary-years').textContent =
+      `残り ${fmt(yearsLeft, 1)} 年分の概算`;
+
+    document.getElementById('main-result').innerHTML = `
+      <div class="ac-animal-grid">
+        <div class="ac-animal-tile">
+          <div class="ac-animal-emoji">🐄</div>
+          <div class="ac-animal-name">牛</div>
+          <div class="ac-animal-count">${fmt(cow, 2)}<span class="ac-animal-unit">頭</span></div>
         </div>
-
-        <div style="padding:14px;border-radius:10px;background:#f6f3ee;">
-          <div style="font-size:13px;color:#666;">豚</div>
-          <div style="font-size:28px;font-weight:bold;margin-top:6px;">${formatNumber(pig, 2)} <span style="font-size:16px;">頭</span></div>
+        <div class="ac-animal-tile">
+          <div class="ac-animal-emoji">🐷</div>
+          <div class="ac-animal-name">豚</div>
+          <div class="ac-animal-count">${fmt(pig, 2)}<span class="ac-animal-unit">頭</span></div>
         </div>
-
-        <div style="padding:14px;border-radius:10px;background:#f6f3ee;">
-          <div style="font-size:13px;color:#666;">肉用鶏</div>
-          <div style="font-size:28px;font-weight:bold;margin-top:6px;">${formatNumber(broiler, 1)} <span style="font-size:16px;">羽</span></div>
+        <div class="ac-animal-tile">
+          <div class="ac-animal-emoji">🐔</div>
+          <div class="ac-animal-name">肉用鶏</div>
+          <div class="ac-animal-count">${fmt(broiler, 1)}<span class="ac-animal-unit">羽</span></div>
         </div>
-
-        <div style="padding:14px;border-radius:10px;background:#f6f3ee;">
-          <div style="font-size:13px;color:#666;">採卵鶏</div>
-          <div style="font-size:28px;font-weight:bold;margin-top:6px;">${formatNumber(layerHen, 1)} <span style="font-size:16px;">羽</span></div>
+        <div class="ac-animal-tile">
+          <div class="ac-animal-emoji">🥚</div>
+          <div class="ac-animal-name">採卵鶏</div>
+          <div class="ac-animal-count">${fmt(layerHen, 1)}<span class="ac-animal-unit">羽</span></div>
         </div>
       </div>
-
-      <p style="margin:14px 0 0 0;font-size:12px;color:#666;line-height:1.8;">
-        残り年数：${formatNumber(yearsLeft, 2)} 年
-      </p>
     `;
 
-    fishResult.innerHTML = `
-      <p style="margin:0 0 12px 0;font-size:14px;color:#666;">これから先の概算</p>
-
-      <div style="padding:14px;border-radius:10px;background:#eef6fa;margin-bottom:12px;">
-        <div style="font-size:13px;color:#666;">食用魚介類の消費量</div>
-        <div style="font-size:30px;font-weight:bold;margin-top:6px;">${formatNumber(fishKg, 1)} <span style="font-size:16px;">kg</span></div>
+    document.getElementById('fish-result').innerHTML = `
+      <div class="ac-fish-tile">
+        <div class="ac-fish-name">🐟 食用魚介類の消費量</div>
+        <div class="ac-fish-count">${fmt(fishKg, 1)}<span class="ac-fish-unit">kg</span></div>
       </div>
-
-      <div style="padding:14px;border-radius:10px;background:#eef6fa;">
-        <div style="font-size:13px;color:#666;">サンマ換算</div>
-        <div style="font-size:34px;font-weight:bold;margin-top:6px;">約 ${Math.round(sauryCount).toLocaleString("ja-JP")} <span style="font-size:18px;">匹</span></div>
+      <div class="ac-fish-tile">
+        <div class="ac-fish-name">🐟 サンマ換算（参考）</div>
+        <div class="ac-fish-count">約 ${Math.round(sauryCount).toLocaleString('ja-JP')}<span class="ac-fish-unit">匹</span></div>
       </div>
-
-      <p style="margin:14px 0 0 0;font-size:12px;color:#666;line-height:1.8;">
-        残り年数：${formatNumber(yearsLeft, 2)} 年
-      </p>
     `;
 
-    allResults.style.display = "block";
+    // 結果が既に表示されていたら再アニメーション
+    allResults.style.display = 'none';
+    requestAnimationFrame(() => {
+      allResults.style.display = 'block';
+    });
   }
+
+  // Enterキー対応
+  document.getElementById('age-all').addEventListener('keydown', function(e) {
+    if (e.key === 'Enter') calcAllAnimals();
+  });
 </script>
