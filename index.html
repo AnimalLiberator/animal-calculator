@@ -48,12 +48,19 @@
     color: #333;
   }
 
+  .ac-input-wrapper {
+    display: flex;
+    justify-content: center;
+  }
+
   .ac-input {
-    width: 100%;
-    padding: 13px 14px;
+    width: 180px;
+    padding: 16px 14px;
     border: 1.5px solid #ccc;
     border-radius: 12px;
-    font-size: 16px;
+    font-size: 30px;
+    font-weight: 700;
+    text-align: center;
     box-sizing: border-box;
     transition: border-color 0.2s, box-shadow 0.2s;
     outline: none;
@@ -64,6 +71,8 @@
     border-color: #00AEEF;
     box-shadow: 0 0 0 3px rgba(0,174,239,0.15);
   }
+
+  .ac-input::placeholder { color: rgba(0,0,0,0.2); }
 
   .ac-input::-webkit-outer-spin-button,
   .ac-input::-webkit-inner-spin-button { -webkit-appearance: none; }
@@ -322,16 +331,18 @@
     </p>
 
     <label class="ac-label" for="age-all">あなたの年齢</label>
-    <input
-      type="number"
-      id="age-all"
-      class="ac-input"
-      min="0"
-      max="120"
-      placeholder="例：30"
-      inputmode="numeric"
-      autofocus
-    >
+    <div class="ac-input-wrapper">
+      <input
+        type="number"
+        id="age-all"
+        class="ac-input"
+        min="0"
+        max="120"
+        placeholder="0"
+        inputmode="numeric"
+        autofocus
+      >
+    </div>
 
     <div id="ac-error" class="ac-error">0〜120の範囲で年齢を入力してください。</div>
 
@@ -369,7 +380,7 @@
     <!-- 次のステップ -->
     <div class="ac-cta">
       <p>ヴィーガンへの移行に興味をもったら、<br>具体的なヒントをまとめたページもご覧ください。</p>
-      <a class="ac-cta-link" href="https://www.animal-liberator.net/vegan-tips" target="_blank" rel="noopener">ヴィーガンのコツを見る →</a>
+      <a class="ac-cta-link" href="https://www.animal-liberator.net/vegan" target="_blank" rel="noopener">ヴィーガンのコツを見る →</a>
     </div>
 
     <!-- まとめ注釈 -->
